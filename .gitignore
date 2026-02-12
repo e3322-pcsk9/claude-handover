@@ -1,0 +1,6 @@
+# Ignore auto-generated handover files with timestamps
+# Format: HANDOVER-YYYY-MM-DD.md or HANDOVER-YYYY-MM-DD-HHMMSS.md
+HANDOVER-*.md
+
+# Keep the main HANDOVER.md documentation file (negation rule)
+!HANDOVER.md

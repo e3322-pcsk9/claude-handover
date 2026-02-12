@@ -1,11 +1,15 @@
 ---
 name: handover
-description: Generate a HANDOVER.md shift-change report summarizing the current session. Use when user types /handover or asks to create a handover document.
+description: Generate a timestamped HANDOVER document (HANDOVER-YYYY-MM-DD-HHMMSS.md) summarizing the current session. Use when user types /handover or asks to create a handover document.
 ---
 
 # Handover Document Generator
 
-Review the **full conversation** from start to finish and write a comprehensive handover document to `HANDOVER.md` in the current working directory. This document serves as a shift-change report for the next Claude session picking up where this one left off.
+Review the **full conversation** from start to finish and write a comprehensive handover document with a timestamped filename in the current working directory. This document serves as a shift-change report for the next Claude session picking up where this one left off.
+
+**Filename Format:** `HANDOVER-YYYY-MM-DD-HHMMSS.md` (e.g., `HANDOVER-2026-02-12-143052.md`)
+
+This timestamp-based naming ensures multiple handover snapshots can be created on the same day without overwriting previous files.
 
 ## What to Capture
 
@@ -29,5 +33,6 @@ Review the **full conversation** from start to finish and write a comprehensive 
 - Be specific — file paths, line numbers, error messages, command output are all valuable.
 - Focus on what the *next session* needs to know, not a chronological replay of the conversation.
 - If the session was exploratory or research-heavy, capture findings and conclusions even if no code was written.
-- Use the Write tool to create `HANDOVER.md` in the current working directory.
+- **Generate filename:** Use current timestamp in format `HANDOVER-YYYY-MM-DD-HHMMSS.md` (e.g., if current time is 2026-02-12 14:30:52, use `HANDOVER-2026-02-12-143052.md`)
+- Use the Write tool to create the timestamped file in the current working directory.
 - After writing, tell the user where the file was saved and give a brief summary of what's in it.
