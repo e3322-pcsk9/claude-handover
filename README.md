@@ -6,7 +6,9 @@ Portable Claude Code configuration — skills, hooks, and settings that sync acr
 
 ### `/handover` Skill
 
-Manual slash command that generates a `HANDOVER.md` shift-change report summarizing the current session. Captures completed work, decisions, gotchas, and next steps so the next Claude session can pick up without losing context.
+Manual slash command that generates a timestamped handover document summarizing the current session. Captures completed work, decisions, gotchas, and next steps so the next Claude session can pick up without losing context.
+
+Filename format: `一句话总结内容-HANDOVER-YYYY-MM-DD-HHMMSS.md` — the one-sentence summary prefix is AI-generated from the session content.
 
 #### Vibe
 create /handover command. Here's what it does:
@@ -29,7 +31,7 @@ What the handover doc covers:
 
 ### PreCompact Hook
 
-Automatically generates a dated handover document (`HANDOVER-YYYY-MM-DD.md`) when Claude Code auto-compacts. Only triggers on automatic compaction — manual `/compact` is left alone. Uses `claude -p` to summarize the conversation transcript.
+Automatically generates a handover document (`一句话总结内容-HANDOVER-YYYY-MM-DD-HHMMSS.md`) when Claude Code auto-compacts. Only triggers on automatic compaction — manual `/compact` is left alone. Uses `claude -p` to summarize the conversation transcript.
 
 #### Vibe
 add more functions:
@@ -39,7 +41,7 @@ When Claude Code is about to auto-compact compress the conversation because it's
 
 2. Sends it to a fresh Claude instance (claude -p) with instructions to generate a handover summary
 
-3. Saves it as HANDOVER-YYYY-MM-DD. md in my project folder
+3. Saves it as `一句话总结内容-HANDOVER-YYYY-MM-DD-HHMMSS.md` in my project folder
 
 The matcher auto means this only triggers on automatic compaction not when you manually run /compact. This way you're not generating handover docs when you intentionally compact.
 

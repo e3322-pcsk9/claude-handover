@@ -1,15 +1,21 @@
 ---
 name: handover
-description: Generate a timestamped HANDOVER document (HANDOVER-YYYY-MM-DD-HHMMSS.md) summarizing the current session. Use when user types /handover or asks to create a handover document.
+description: Generate a timestamped HANDOVER document summarizing the current session. Use when user types /handover or asks to create a handover document.
 ---
 
 # Handover Document Generator
 
-Review the **full conversation** from start to finish and write a comprehensive handover document with a timestamped filename in the current working directory. This document serves as a shift-change report for the next Claude session picking up where this one left off.
+Review the **full conversation** from start to finish and write a comprehensive handover document with a descriptive timestamped filename in the current working directory. This document serves as a shift-change report for the next Claude session picking up where this one left off.
 
-**Filename Format:** `HANDOVER-YYYY-MM-DD-HHMMSS.md` (e.g., `HANDOVER-2026-02-12-143052.md`)
+**Filename Format:** `一句话总结内容-HANDOVER-YYYY-MM-DD-HHMMSS.md`
 
-This timestamp-based naming ensures multiple handover snapshots can be created on the same day without overwriting previous files.
+Example: `修复登录bug并优化数据库查询-HANDOVER-2026-02-12-143052.md`
+
+The one-sentence summary prefix should:
+- Capture the core topic of this session in one concise phrase (max ~15 words)
+- Be written in the same language as the conversation
+- Be sanitized for use in a filename: replace spaces with `-`, remove characters invalid in filenames (`/ \ : * ? " < > |`)
+- Be truncated to 30 characters if longer
 
 ## What to Capture
 
@@ -33,6 +39,6 @@ This timestamp-based naming ensures multiple handover snapshots can be created o
 - Be specific — file paths, line numbers, error messages, command output are all valuable.
 - Focus on what the *next session* needs to know, not a chronological replay of the conversation.
 - If the session was exploratory or research-heavy, capture findings and conclusions even if no code was written.
-- **Generate filename:** Use current timestamp in format `HANDOVER-YYYY-MM-DD-HHMMSS.md` (e.g., if current time is 2026-02-12 14:30:52, use `HANDOVER-2026-02-12-143052.md`)
-- Use the Write tool to create the timestamped file in the current working directory.
+- **Generate filename:** First compose a one-sentence summary of the session, sanitize it for a filename, then combine with the current timestamp in format `SUMMARY-HANDOVER-YYYY-MM-DD-HHMMSS.md`.
+- Use the Write tool to create the file in the current working directory.
 - After writing, tell the user where the file was saved and give a brief summary of what's in it.

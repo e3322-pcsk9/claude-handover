@@ -2,12 +2,13 @@
 """Pre-compact hook that generates a handover document before auto-compaction.
 
 Reads the conversation transcript, pipes it to `claude -p` to generate
-a summary, and saves it as HANDOVER-YYYY-MM-DD.md in the project directory.
+a summary, and saves it as 一句话总结-HANDOVER-YYYY-MM-DD-HHMMSS.md in the project directory.
 
 Only runs on automatic compaction (matcher: "auto" in settings), not manual /compact.
 """
 
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -49,10 +50,33 @@ def read_transcript(transcript_path: str) -> str:
     return "\n\n---\n\n".join(messages)
 
 
-def generate_handover(transcript_text: str, cwd: str) -> str:
-    """Call claude -p to generate a handover summary from the transcript."""
+def sanitize_for_filename(text: str, max_len: int = 20) -> str:
+    """Sanitize a string for use as a filename component."""
+    # Remove characters invalid in filenames
+    text = re.sub(r'[/\\:*?"<>|]', "", text)
+    # Replace whitespace with hyphens
+    text = re.sub(r"\s+", "-", text.strip())
+    # Collapse multiple hyphens
+    text = re.sub(r"-{2,}", "-", text)
+    # Strip leading/trailing hyphens
+    text = text.strip("-")
+    # Truncate to max length
+    return text[:max_len]
+
+
+def generate_handover(transcript_text: str, cwd: str) -> tuple[str, str]:
+    """Call claude -p to generate a one-sentence summary and full handover document.
+
+    Returns:
+        (summary, handover_content) tuple
+    """
     prompt = """You are generating a handover document from a Claude Code session transcript.
-Review the conversation and write a concise but comprehensive HANDOVER document with these sections:
+
+First, output a ONE-SENTENCE summary (in the same language as the conversation, max 15 words) of what this session was about, on a single line starting with "SUMMARY:".
+
+Then output the separator line: "---CONTENT---"
+
+Then write the full HANDOVER document with these sections:
 
 ## Session Summary
 What was being worked on, current status.
@@ -91,7 +115,23 @@ Here is the session transcript:
     if result.returncode != 0:
         raise RuntimeError(f"claude -p failed: {result.stderr}")
 
-    return result.stdout.strip()
+    output = result.stdout.strip()
+
+    # Parse summary and content
+    summary = ""
+    handover_content = output
+
+    if "---CONTENT---" in output:
+        parts = output.split("---CONTENT---", 1)
+        header = parts[0].strip()
+        handover_content = parts[1].strip()
+
+        for line in header.splitlines():
+            if line.startswith("SUMMARY:"):
+                summary = line[len("SUMMARY:"):].strip()
+                break
+
+    return summary, handover_content
 
 
 def main():
@@ -115,21 +155,15 @@ def main():
             print(json.dumps({"continue": True}))
             return
 
-        handover_content = generate_handover(transcript_text, cwd)
+        summary, handover_content = generate_handover(transcript_text, cwd)
 
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        output_path = Path(cwd) / f"HANDOVER-{date_str}.md"
+        datetime_str = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        summary_slug = sanitize_for_filename(summary) if summary else "session"
+        output_path = Path(cwd) / f"{summary_slug}-HANDOVER-{datetime_str}.md"
 
-        # Avoid overwriting — append a counter if file exists
-        if output_path.exists():
-            counter = 2
-            while True:
-                output_path = Path(cwd) / f"HANDOVER-{date_str}-{counter}.md"
-                if not output_path.exists():
-                    break
-                counter += 1
-
-        output_path.write_text(f"# Handover — {date_str}\n\n{handover_content}\n")
+        output_path.write_text(
+            f"# Handover — {summary or 'Session'}\n\n{handover_content}\n"
+        )
 
     except Exception:
         # Never block compaction due to handover failure
