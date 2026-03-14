@@ -82,6 +82,25 @@ Always preserve when present:
 - Keep each section under 500 words; condense older content to make room for recent
 - If you must cut details, preserve: user corrections > errors > active work > completed work
 
+## Associated Plan
+
+If a plan file was used during this session (look for paths like `~/.claude/plans/*.md` in system messages such as "A plan file already exists at ..."):
+
+1. Read the plan file using the Read tool
+2. Include its content in a `## Associated Plan` section at the end of the handover document, inside a code block:
+
+```
+## Associated Plan
+
+Source: `~/.claude/plans/example-plan.md`
+
+\`\`\`markdown
+(full plan file content here)
+\`\`\`
+```
+
+If no plan file was used in this session, omit this section entirely.
+
 ## Output
 
 - Use the Write tool to create the file in the current working directory.

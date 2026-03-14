@@ -140,6 +140,37 @@ def sanitize_for_filename(text: str, max_len: int = 20) -> str:
     return text[:max_len]
 
 
+def find_plan_paths(transcript_text: str) -> list[str]:
+    """Extract plan file paths from transcript text."""
+    pattern = r"~/.claude/plans/[a-zA-Z0-9_-]+\.md"
+    matches = re.findall(pattern, transcript_text)
+    # Expand ~ and deduplicate while preserving order
+    seen = set()
+    paths = []
+    for match in matches:
+        expanded = str(Path(match.replace("~", str(Path.home()))))
+        if expanded not in seen:
+            seen.add(expanded)
+            paths.append(expanded)
+    return paths
+
+
+def read_plan_files(plan_paths: list[str]) -> str:
+    """Read plan files and format them for appending to handover content."""
+    sections = []
+    for path in plan_paths:
+        p = Path(path)
+        if p.exists():
+            content = p.read_text()
+            original = "~/.claude/plans/" + p.name
+            sections.append(
+                f"## Associated Plan\n\n"
+                f"Source: `{original}`\n\n"
+                f"```markdown\n{content}\n```"
+            )
+    return "\n\n".join(sections)
+
+
 def generate_handover(transcript_text: str, cwd: str) -> tuple[str, str]:
     """Call claude -p to generate a one-sentence summary and full handover document.
 
@@ -199,6 +230,13 @@ def main():
             return
 
         summary, handover_content = generate_handover(transcript_text, cwd)
+
+        # Detect and embed associated plan files
+        plan_paths = find_plan_paths(transcript_text)
+        if plan_paths:
+            plan_content = read_plan_files(plan_paths)
+            if plan_content:
+                handover_content = handover_content + "\n\n" + plan_content
 
         datetime_str = datetime.now().strftime("%Y-%m-%d-%H%M%S")
         summary_slug = sanitize_for_filename(summary) if summary else "session"

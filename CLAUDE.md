@@ -41,11 +41,13 @@ print(sanitize_for_filename('your test string'))
 - Reads `transcript_path` from stdin JSON, parses the JSONL conversation, calls `claude -p` to generate a handover summary
 - Output format: `{summary_slug}-HANDOVER-YYYY-MM-DD-HHMMSS.md` in the project `cwd`
 - The hook never blocks compaction — all errors are swallowed silently (`except Exception: pass`)
+- Embeds associated plan file content: scans transcript for `~/.claude/plans/*.md` paths, reads the files, and appends a `## Associated Plan` section with the full content
 - **Cannot be tested via `claude -p` from inside an active Claude Code session** (nested sessions are blocked). Test transcript parsing and filename logic in isolation; full end-to-end only fires on actual auto-compaction.
 
 ### Skill (`skills/handover/SKILL.md`)
 - Manual `/handover` slash command — prompts Claude to review the session and write a handover doc
 - Same filename format as the hook: `{summary_slug}-HANDOVER-YYYY-MM-DD-HHMMSS.md`
+- Embeds associated plan file content when a plan was used during the session (reads the file and includes it in a `## Associated Plan` section)
 
 ### Uninstall (`uninstall.sh`)
 - Removes symlinks from `~/.claude/skills/` and `~/.claude/hooks/`
