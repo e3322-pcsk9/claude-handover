@@ -9,8 +9,8 @@ Portable Claude Code configuration — skills and hooks that install into `~/.cl
 ## Key Commands
 
 ```bash
-./install.sh     # Symlink skills/hooks + merge hooks.json into ~/.claude/settings.local.json
-./uninstall.sh   # Remove symlinks + strip hooks key from settings.local.json
+./install.sh     # Symlink skills/hooks + merge hooks.json into ~/.claude/settings.json
+./uninstall.sh   # Remove symlinks + remove our hook entries from settings.json
 git pull         # Update (symlinks mean no reinstall needed unless new files added)
 ```
 
@@ -31,8 +31,10 @@ print(sanitize_for_filename('your test string'))
 
 ### Install/Uninstall (`install.sh` / `uninstall.sh`)
 - Creates symlinks: `skills/<name>/` → `~/.claude/skills/<name>`, `hooks/<file>` → `~/.claude/hooks/<file>`
-- Merges `hooks.json` (source of truth for hook config) into `~/.claude/settings.local.json` using embedded Python
-- `uninstall.sh` removes symlinks and strips the `hooks` key from `settings.local.json`
+- Merges `hooks.json` (source of truth for hook config) into `~/.claude/settings.json` using embedded Python
+- Merge strategy: entry-level upsert by `hooks[].command` — only touches entries we own, preserves all other hooks
+- Migration: also removes any matching entries from `settings.local.json` to prevent double execution
+- `uninstall.sh` removes symlinks and removes only our hook entries from both `settings.json` and `settings.local.json`
 
 ### Hook (`hooks/pre-compact-handover.py`)
 - Triggered by Claude Code's `PreCompact` event (`matcher: "auto"` — only on automatic compaction)
@@ -47,11 +49,11 @@ print(sanitize_for_filename('your test string'))
 
 ### Uninstall (`uninstall.sh`)
 - Removes symlinks from `~/.claude/skills/` and `~/.claude/hooks/`
-- Strips the `hooks` key from `~/.claude/settings.local.json` (other keys preserved)
+- Removes only our hook entries (matched by command) from `settings.json` and `settings.local.json`
 
 ### Hook Config (`hooks.json`)
-- Source of truth for `settings.local.json` `hooks` key
-- `install.sh` replaces the entire `hooks` key on each run — manual edits to `settings.local.json` hooks will be overwritten
+- Source of truth for which hook entries this repo manages
+- `install.sh` upserts entries by matching on `hooks[].command` — other hooks in `settings.json` are preserved
 
 ### Generated Handover Files
 - Filename format: `{slug}-HANDOVER-YYYY-MM-DD-HHMMSS.md` (slug prefix comes first)
