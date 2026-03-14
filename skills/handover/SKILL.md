@@ -5,40 +5,84 @@ description: Generate a timestamped HANDOVER document summarizing the current se
 
 # Handover Document Generator
 
-Review the **full conversation** from start to finish and write a comprehensive handover document with a descriptive timestamped filename in the current working directory. This document serves as a shift-change report for the next Claude session picking up where this one left off.
+Review the **full conversation** from start to finish and compress it into a structured handover document. This serves as a session memory for the next Claude session picking up where this one left off. Optimize for the assistant's ability to continue working, not human readability.
 
-**Filename Format:** `一句话总结内容-HANDOVER-YYYY-MM-DD-HHMMSS.md`
+## Filename
 
-Example: `修复登录bug并优化数据库查询-HANDOVER-2026-02-12-143052.md`
+**Format:** `SUMMARY-HANDOVER-YYYY-MM-DD-HHMMSS.md`
 
-The one-sentence summary prefix should:
+Example: `fix-login-bug-optimize-db-HANDOVER-2026-02-12-143052.md`
+
+The summary prefix should:
 - Capture the core topic of this session in one concise phrase (max ~15 words)
 - Be written in the same language as the conversation
 - Be sanitized for use in a filename: replace spaces with `-`, remove characters invalid in filenames (`/ \ : * ? " < > |`)
 - Be truncated to 30 characters if longer
 
-## What to Capture
+## Analysis
 
-**Session Summary** — What was being worked on, what's the current status, and what state is the project in right now.
+Before writing, analyze the conversation:
 
-**Completed Work** — Specific things that got done. Include file paths, function names, commands run — enough detail that the next session can verify the work without re-reading every file.
+1. What did the user originally request? (Exact phrasing)
+2. What actions succeeded? What failed and why?
+3. Did the user correct or redirect me at any point?
+4. What was I actively working on at the end?
+5. What tasks remain incomplete or pending?
+6. What specific details (IDs, paths, values, names) must survive compression?
 
-**What Worked / What Didn't** — Bugs encountered, failed approaches, things that turned out to be red herrings, and how issues were ultimately resolved. This is often the most valuable section — it prevents the next session from repeating mistakes.
+## Summary Format
 
-**Key Decisions & Rationale** — Decisions made during the session and *why* they were made. Include alternatives that were considered and rejected. The next session shouldn't second-guess decisions without understanding the reasoning.
+### User Intent
+The user's original request and any refinements. Use direct quotes for key requirements.
+If the user's goal evolved during the conversation, capture that progression.
 
-**Lessons Learned & Gotchas** — Surprising behaviors, undocumented quirks, environment-specific issues, or anything the next session should know to avoid wasting time.
+### Completed Work
+Actions successfully performed. Be specific:
+- What was created, modified, or deleted
+- Exact identifiers (file paths, record IDs, URLs, names)
+- Specific values, configurations, or settings applied
 
-**Next Steps** — Clear, actionable items. What should the next session do first? Are there any blockers? Is anything time-sensitive?
+### Errors & Corrections
+- Problems encountered and how they were resolved
+- Approaches that failed (so they aren't retried)
+- User corrections: "don't do X", "actually I meant Y", "that's wrong because..."
+Capture corrections verbatim — these represent learned preferences.
 
-**Key Files** — A map of important files that were created, modified, or referenced during the session, with brief notes on what each one does or why it matters.
+### Active Work
+What was in progress when the session ended. Include:
+- The specific task being performed
+- Direct quotes showing exactly where work left off
+- Any partial results or intermediate state
 
-## Guidelines
+### Pending Tasks
+Remaining items the user requested that haven't been started.
+Distinguish between "explicitly requested" and "implied/assumed."
 
-- Write in plain, direct language. No fluff.
-- Be specific — file paths, line numbers, error messages, command output are all valuable.
-- Focus on what the *next session* needs to know, not a chronological replay of the conversation.
-- If the session was exploratory or research-heavy, capture findings and conclusions even if no code was written.
-- **Generate filename:** First compose a one-sentence summary of the session, sanitize it for a filename, then combine with the current timestamp in format `SUMMARY-HANDOVER-YYYY-MM-DD-HHMMSS.md`.
+### Key References
+Important details needed to continue:
+- Identifiers: IDs, paths, URLs, names, keys
+- Values: numbers, dates, configurations, credentials (redacted)
+- Context: relevant background information, constraints, preferences
+- Citations: sources referenced during the conversation
+
+## Preserve Rules
+
+Always preserve when present:
+- Exact identifiers (IDs, paths, URLs, keys, names)
+- Error messages verbatim
+- User corrections and negative feedback
+- Specific values, formulas, or configurations
+- Technical constraints or requirements discovered
+- The precise state of any in-progress work
+
+## Compression Rules
+
+- Weight recent messages more heavily — the end of the conversation is the active context
+- Omit pleasantries, acknowledgments, and filler ("Sure!", "Great question")
+- Keep each section under 500 words; condense older content to make room for recent
+- If you must cut details, preserve: user corrections > errors > active work > completed work
+
+## Output
+
 - Use the Write tool to create the file in the current working directory.
-- After writing, tell the user where the file was saved and give a brief summary of what's in it.
+- After writing, tell the user where the file was saved and give a one-line summary of the session.
