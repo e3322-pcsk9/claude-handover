@@ -29,6 +29,7 @@ Before writing, analyze the conversation:
 4. What was I actively working on at the end?
 5. What tasks remain incomplete or pending?
 6. What specific details (IDs, paths, values, names) must survive compression?
+7. Was a plan file used? (Look for `~/.claude/plans/*.md` in system messages like "A plan file already exists at ..."). If yes, read it now with the Read tool.
 
 ## Summary Format
 
@@ -65,6 +66,9 @@ Important details needed to continue:
 - Context: relevant background information, constraints, preferences
 - Citations: sources referenced during the conversation
 
+### Associated Plan
+If a plan file was found in step 7, include its full content here inside a markdown code block, with the source path. Omit this section if no plan file was used.
+
 ## Preserve Rules
 
 Always preserve when present:
@@ -81,25 +85,6 @@ Always preserve when present:
 - Omit pleasantries, acknowledgments, and filler ("Sure!", "Great question")
 - Keep each section under 500 words; condense older content to make room for recent
 - If you must cut details, preserve: user corrections > errors > active work > completed work
-
-## Associated Plan
-
-If a plan file was used during this session (look for paths like `~/.claude/plans/*.md` in system messages such as "A plan file already exists at ..."):
-
-1. Read the plan file using the Read tool
-2. Include its content in a `## Associated Plan` section at the end of the handover document, inside a code block:
-
-```
-## Associated Plan
-
-Source: `~/.claude/plans/example-plan.md`
-
-\`\`\`markdown
-(full plan file content here)
-\`\`\`
-```
-
-If no plan file was used in this session, omit this section entirely.
 
 ## Output
 

@@ -140,10 +140,11 @@ def sanitize_for_filename(text: str, max_len: int = 20) -> str:
     return text[:max_len]
 
 
-def find_plan_paths(transcript_text: str) -> list[str]:
-    """Extract plan file paths from transcript text."""
+def find_plan_paths(transcript_path: str) -> list[str]:
+    """Extract plan file paths from raw transcript JSONL."""
+    raw_text = Path(transcript_path).read_text()
     pattern = r"~/.claude/plans/[a-zA-Z0-9_-]+\.md"
-    matches = re.findall(pattern, transcript_text)
+    matches = re.findall(pattern, raw_text)
     # Expand ~ and deduplicate while preserving order
     seen = set()
     paths = []
@@ -232,7 +233,7 @@ def main():
         summary, handover_content = generate_handover(transcript_text, cwd)
 
         # Detect and embed associated plan files
-        plan_paths = find_plan_paths(transcript_text)
+        plan_paths = find_plan_paths(transcript_path)
         if plan_paths:
             plan_content = read_plan_files(plan_paths)
             if plan_content:
